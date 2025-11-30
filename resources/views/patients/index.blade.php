@@ -57,10 +57,10 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <a href="{{ route('patients.show', $patient) }}" class="text-blue-600 hover:text-blue-900 mr-3">View</a>
                                             <a href="{{ route('patients.edit', $patient) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
-                                            <form method="POST" action="{{ route('patients.destroy', $patient) }}" class="inline">
+                                            <form method="POST" action="{{ route('patients.destroy', $patient) }}" class="inline" id="delete-form-{{ $patient->id }}">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure you want to delete this patient?')">Delete</button>
+                                                <button type="button" class="text-red-600 hover:text-red-900 delete-btn" data-patient-name="{{ $patient->name }}" data-form-id="delete-form-{{ $patient->id }}">Delete</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -90,4 +90,68 @@
         </div>
     </div>
 </div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+            <svg class="w-16 h-16 text-red-600 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+            <h3 class="text-xl font-semibold text-gray-900 mt-4">Confirm Delete</h3>
+            <div class="mt-2 px-7 py-3">
+                <p class="text-sm text-gray-600">
+                    Are you sure you want to delete <span id="patientName" class="font-bold"></span>? This action cannot be undone.
+                </p>
+            </div>
+            <div class="items-center px-4 py-3 mt-4 flex justify-center">
+                <button id="cancelDelete" class="px-4 py-2 bg-gray-300 text-gray-700 text-base font-medium rounded-md shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 mr-3">
+                    Cancel
+                </button>
+                <button id="confirmDelete" class="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteButtons = document.querySelectorAll('.delete-btn');
+    const deleteModal = document.getElementById('deleteModal');
+    const cancelDelete = document.getElementById('cancelDelete');
+    const confirmDelete = document.getElementById('confirmDelete');
+    const patientNameSpan = document.getElementById('patientName');
+    let formIdToDelete = null;
+
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const patientName = this.getAttribute('data-patient-name');
+            const formId = this.getAttribute('data-form-id');
+
+            patientNameSpan.textContent = patientName;
+            formIdToDelete = formId;
+            deleteModal.classList.remove('hidden');
+        });
+    });
+
+    cancelDelete.addEventListener('click', function() {
+        deleteModal.classList.add('hidden');
+    });
+
+    confirmDelete.addEventListener('click', function() {
+        if (formIdToDelete) {
+            document.getElementById(formIdToDelete).submit();
+        }
+    });
+
+    // Close modal when clicking outside
+    deleteModal.addEventListener('click', function(event) {
+        if (event.target === deleteModal) {
+            deleteModal.classList.add('hidden');
+        }
+    });
+});
+</script>
 @endsection
